@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#3b72f6">
+<title>VinaPay - Full Simulasi v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f4f4;
+    --card: #ffffff;
+    --text: #000000;
+    --muted: #777777;
+    --border: #000000;
+    --primary: #3b72f6;
+    --success: #2e7d32;
+    --danger: #c62828;
+    --warning: #e3b232;
+    --shadow: 4px 4px 0 #000;
+    --shadow-sm: 3px 3px 0 #000;
+    --shadow-xs: 2px 2px 0 #000;
+  }
+  [data-theme="dark"] {
+    --bg: #1a1a1a;
+    --card: #2a2a2a;
+    --text: #f0f0f0;
+    --muted: #aaaaaa;
+    --border: #555555;
+    --shadow: 4px 4px 0 #000;
+    --shadow-sm: 3px 3px 0 #000;
+    --shadow-xs: 2px 2px 0 #000;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); display:flex; justify-content:center; min-height:100vh; transition: background .3s; }
+  
+  .app-container {
+    width:100%; max-width:400px; background: var(--bg);
+    background-image: radial-gradient(var(--muted) 1px, transparent 1px);
+    background-size: 20px 20px; position:relative; padding-bottom:80px;
+    border-left:1px solid var(--border); border-right:1px solid var(--border);
+    overflow-x:hidden; min-height:100vh; transition: background .3s;
+    color: var(--text);
+  }
+
+  /* ===== COMMON ===== */
+  .page { display:none; animation: fadeIn .25s ease; }
+  .page.active { display:block; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+  .btn { display:flex; justify-content:center; align-items:center; width:100%; padding:12px; border:2px solid var(--border); border-radius:12px; font-weight:600; font-size:15px; cursor:pointer; gap:8px; transition: all .1s; }
+  .btn:active { transform:translateY(2px); box-shadow: 1px 1px 0 var(--border) !important; }
+  .btn-primary { background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); margin-bottom:15px; }
+  .btn-secondary { background: transparent; color: #fff; border:1px solid rgba(255,255,255,.5); font-weight:500; }
+  .btn-green { background: var(--success); color:#fff; border:2px solid var(--border); box-shadow: var(--shadow-sm); }
+  .btn-red { background: var(--danger); color:#fff; border:2px solid var(--border); box-shadow: var(--shadow-sm); }
+  .btn-blue { background: var(--primary); color:#fff; border:2px solid var(--border); box-shadow: var(--shadow-sm); }
+  .btn-grey { background: #666; color:#fff; border:2px solid var(--border); box-shadow: var(--shadow-sm); }
+
+  /* ===== LOGIN ===== */
+  #login-page { display:flex; flex-direction:column; justify-content:center; height:100vh; padding:20px; }
+  .login-box { background: var(--card); border:2px solid var(--border); border-radius:20px; padding:30px 20px; box-shadow: var(--shadow); }
+  .login-title { text-align:center; font-size:22px; font-weight:800; margin-bottom:25px; }
+  .input-group { margin-bottom:15px; }
+  .input-group label { display:block; font-size:13px; font-weight:600; margin-bottom:5px; }
+  .input-group input, .input-group select, .input-group textarea {
+    width:100%; padding:12px; border:2px solid var(--border); border-radius:8px; font-size:14px; outline:none;
+    background: var(--card); color: var(--text); transition: all .2s;
+  }
+  .input-group input:focus, .input-group select:focus { background: #f0f8ff; color:#000; }
+  [data-theme="dark"] .input-group input:focus { background: #1e3a5f; color:#fff; }
+  .input-group .err { color: var(--danger); font-size:11px; margin-top:4px; display:none; }
+  .input-group.invalid input { border-color: var(--danger); }
+  .input-group.invalid .err { display:block; }
+  .error-msg { color: var(--danger); font-size:12px; text-align:center; margin-top:10px; display:none; }
+  .hint { font-size:11px; color: var(--muted); text-align:center; margin-top:12px; line-height:1.5; }
+
+  /* ===== HEADER ===== */
+  .header { display:flex; justify-content:space-between; align-items:center; padding:15px; background: var(--bg); border-bottom:2px solid var(--border); transition: background .3s; position:sticky; top:0; z-index:20; }
+  .header-left { display:flex; align-items:center; gap:10px; }
+  .menu-btn { width:40px; height:40px; background: var(--card); border:2px solid var(--border); border-radius:8px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; box-shadow: var(--shadow-xs); cursor:pointer; transition: transform .2s; }
+  .menu-btn:hover { transform: rotate(90deg); }
+  .menu-btn span { display:block; width:20px; height:2px; background: var(--text); }
+  .logo-area { display:flex; align-items:center; gap:8px; font-weight:700; font-size:18px; }
+  .logo-icon { width:35px; height:35px; background: var(--primary); border:2px solid var(--border); border-radius:8px; display:flex; justify-content:center; align-items:center; color:#fff; font-style:italic; font-weight:bold; }
+  .header-right { display:flex; gap:6px; align-items:center; }
+  .badge { background: var(--warning); border:2px solid var(--border); padding:6px 10px; border-radius:8px; font-weight:600; font-size:12px; box-shadow: var(--shadow-xs); cursor:pointer; color:#000; }
+  .badge.grey { background: var(--card); color: var(--text); }
+  .badge.theme { background: var(--card); color: var(--text); padding:6px 8px; }
+
+  /* ===== DASHBOARD ===== */
+  .main-content { padding:20px 15px; }
+  .hero-card { background: var(--primary); border:2px solid var(--border); border-radius:20px; padding:30px 20px; text-align:center; box-shadow: var(--shadow); margin-bottom:30px; color:#fff; position:relative; overflow:hidden; }
+  .hero-card::before { content:''; position:absolute; top:-50px; right:-50px; width:150px; height:150px; background: rgba(255,255,255,.1); border-radius:50%; }
+  .hero-title { font-size:20px; font-weight:800; margin-bottom:10px; color:#000; position:relative; }
+  .hero-desc { font-size:13px; line-height:1.5; margin-bottom:25px; opacity:.95; position:relative; }
+  .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+  .section-title { font-size:16px; font-weight:700; color: var(--text); }
+  .live-badge { background: #e8f5e9; color: var(--success); padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600; display:flex; align-items:center; gap:5px; }
+  .live-dot { width:6px; height:6px; background: var(--success); border-radius:50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+  .stat-card { background: var(--card); border:2px solid var(--border); border-radius:16px; padding:15px; box-shadow: var(--shadow-sm); margin-bottom:15px; transition: transform .2s, background .3s; }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; color: var(--muted); font-size:13px; font-weight:500; }
+  .stat-icon { width:30px; height:30px; background:#e0f2f1; border-radius:8px; display:flex; justify-content:center; align-items:center; font-size:16px; }
+  .stat-icon.yellow { background:#fff8e1; }
+  .stat-icon.blue { background:#e3f2fd; }
+  .stat-icon.red { background:#ffebee; }
+  .stat-value { font-size:18px; font-weight:800; color: var(--text); }
+  .stat-trend { font-size:11px; margin-top:4px; font-weight:600; }
+  .stat-trend.up { color: var(--success); }
+  .stat-trend.down { color: var(--danger); }
+
+  /* ===== PAGE HEADER ===== */
+  .page-header { display:flex; align-items:center; gap:10px; padding:15px; background: var(--primary); color:#fff; border-bottom:2px solid var(--border); position:sticky; top:0; z-index:20; }
+  .back-btn { background: var(--card); color: var(--text); border:2px solid var(--border); border-radius:8px; padding:6px 10px; font-weight:700; cursor:pointer; box-shadow: var(--shadow-xs); }
+  .page-header h2 { font-size:16px; font-weight:700; }
+
+  /* ===== LIST / TABLE ===== */
+  .list-card { background: var(--card); border:2px solid var(--border); border-radius:12px; padding:12px; box-shadow: var(--shadow-sm); margin-bottom:12px; font-size:13px; }
+  .list-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--muted); }
+  .list-row:last-child { border-bottom:none; }
+  .status-success { color: var(--success); font-weight:700; }
+  .status-pending { color: var(--warning); font-weight:700; }
+  .status-failed { color: var(--danger); font-weight:700; }
+  .empty { text-align:center; padding:30px; color: var(--muted); font-size:13px; }
+
+  /* ===== ADMIN ===== */
+  .admin-content { padding:20px 15px; }
+  .admin-card { background: var(--card); border:2px solid var(--border); border-radius:16px; padding:20px; box-shadow: var(--shadow-sm); margin-bottom:20px; }
+  .admin-card h3 { font-size:15px; margin-bottom:15px; border-bottom:1px dashed var(--muted); padding-bottom:8px; }
+  .admin-actions { display:flex; flex-direction:column; gap:10px; }
+  .divider { height:1px; background: var(--muted); margin:20px 0; opacity:.3; }
+
+  /* ===== NAV & FLOATING ===== */
+  .bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:400px; background: var(--card); border-top:2px solid var(--border); display:flex; justify-content:space-around; padding:10px 0; z-index:30; transition: background .3s; }
+  .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color: var(--muted); font-size:11px; font-weight:500; cursor:pointer; padding:4px 10px; border-radius:8px; transition: all .2s; }
+  .nav-item.active { color: var(--text); font-weight:700; }
+  .nav-item:hover { background: rgba(59,114,246,.1); }
+  .nav-icon { font-size:20px; }
+  .floating-bar { position:fixed; bottom:68px; left:50%; transform:translateX(-50%); width:calc(100% - 20px); max-width:380px; background:#1a1a1a; color:#fff; padding:12px 20px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; font-weight:600; box-shadow:0 4px 10px rgba(0,0,0,.3); z-index:29; cursor:pointer; transition: all .2s; }
+  .floating-bar:hover { background:#000; transform:translateX(-50%) translateY(-2px); }
+
+  /* ===== TOAST ===== */
+  .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-100px); background: var(--text); color: var(--bg); padding:10px 20px; border-radius:8px; font-size:13px; font-weight:600; transition:.3s; z-index:999; box-shadow: 0 4px 20px rgba(0,0,0,.3); }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* ===== MODAL ===== */
+  .modal-overlay { position:fixed; inset:0; background: rgba(0,0,0,.5); display:none; justify-content:center; align-items:center; z-index:100; padding:20px; }
+  .modal-overlay.show { display:flex; }
+  .modal { background: var(--card); border:2px solid var(--border); border-radius:16px; padding:25px; max-width:340px; width:100%; box-shadow: var(--shadow); animation: slideUp .25s ease; }
+  @keyframes slideUp { from { transform: translateY(30px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .modal h3 { margin-bottom:15px; font-size:16px; }
+  .modal p { font-size:13px; color: var(--muted); margin-bottom:20px; line-height:1.5; }
+  .modal-actions { display:flex; gap:10px; }
+
+  /* ===== SPINNER ===== */
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== SCROLL ===== */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--muted); border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="app-container" id="app">
+
+  <!-- ================= LOGIN ================= -->
+  <div id="login-page" class="page active">
+    <div class="login-box">
+      <div class="login-title">🔐 Masuk ke VinaPay</div>
+      <div class="input-group" id="grpEmail">
+        <label>Email</label>
+        <input type="email" id="emailInput" placeholder="admin@vinapay.id" autocomplete="username">
+        <div class="err">Email wajib diisi dengan format valid</div>
+      </div>
+      <div class="input-group" id="grpPass">
+        <label>Password</label>
+        <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password">
+        <div class="err">Password minimal 6 karakter</div>
+      </div>
+      <button class="btn btn-blue" id="btnLogin" onclick="doLogin()">Login</button>
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="hint" id="loginHint"></div>
+    </div>
+  </div>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div id="dashboard-page" class="page">
+    <header class="header">
+      <div class="header-left">
+        <div class="menu-btn" onclick="toggleTheme()" title="Ganti tema"><span></span><span></span><span></span></div>
+        <div class="logo-area">
+          <div class="logo-icon">VP</div>
+          <span id="merchantNameDisplay">VinaPay</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="badge grey theme" onclick="toggleTheme()" title="Ganti tema">🌙</div>
+        <div class="badge grey" onclick="goTo('admin-page')" title="Pengaturan Admin">⚙️</div>
+        <div class="badge" onclick="konfirmasiLogout()">Logout</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="hero-card">
+        <div style="background:#fff; display:inline-block; padding:5px; border-radius:8px; margin-bottom:15px;">
+          <div style="color:#2b6cf5; font-weight:900; font-size:24px; font-style:italic;">VP</div>
+        </div>
+        <h1 class="hero-title">Layanan Payment Gateway</h1>
+        <p class="hero-desc">Terima pembayaran melalui QRIS Payment untuk Aplikasi atau Platform Bisnis kamu dengan mudah, cepat, dan aman.</p>
+        <button class="btn btn-primary" onclick="showToast('Fitur demo — belum terhubung ke API asli')">Mulai Sekarang &rarr;</button>
+        <button class="btn btn-secondary" onclick="goTo('docs-page')">📄 Panduan API</button>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Statistik Terkini</h2>
+        <div class="live-badge"><div class="live-dot"></div> Live</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header"><div class="stat-icon">📈</div> Nominal Transaksi (24 jam terakhir)</div>
+        <div class="stat-value">Rp 42.000</div>
+        <div class="stat-trend up">▲ 12% dari kemarin</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header"><div class="stat-icon yellow">💵</div> Pencairan Dana (24 jam terakhir)</div>
+        <div class="stat-value">Rp 50.500</div>
+        <div class="stat-trend down">▼ 3% dari kemarin</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header"><div class="stat-icon blue">👥</div> Total Transaksi</div>
+        <div class="stat-value">128</div>
+        <div class="stat-trend up">▲ 8 transaksi baru</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header"><div class="stat-icon red">⏳</div> Transaksi Pending</div>
+        <div class="stat-value">3</div>
+        <div class="stat-trend">Perlu ditindaklanjuti</div>
+      </div>
+    </main>
+
+    <div class="floating-bar" onclick="goTo('transaksi-page')">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span>✖</span><span style="color:#3b72f6;">➤</span> Dashboard
+      </div>
+      <span style="transform:rotate(180deg);">⌃</span>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN ================= -->
+  <div id="admin-page" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="goTo('dashboard-page')">← Kembali</button>
+      <h2>Pengaturan Admin</h2>
+    </div>
+    <div class="admin-content">
+      <div class="admin-card">
+        <h3>🛠️ Profil Merchant</h3>
+        <div class="input-group" id="grpMerchant">
+          <label>Nama Merchant</label>
+          <input type="text" id="admMerchant" placeholder="VinaPay">
+          <div class="err">Nama minimal 3 karakter</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>🔐 Kredensial Login</h3>
+        <div class="input-group" id="grpAdmEmail">
+          <label>Email Admin</label>
+          <input type="email" id="admEmail" placeholder="admin@vinapay.id">
+          <div class="err">Format email tidak valid</div>
+        </div>
+        <div class="input-group" id="grpAdmPass">
+          <label>Password Baru</label>
+          <input type="password" id="admPassword" placeholder="Kosongkan jika tidak diubah">
+          <div class="err">Password minimal 6 karakter</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>🔑 API Key (Simulasi)</h3>
+        <div class="input-group">
+          <label>API Key</label>
+          <input type="text" id="admApiKey" placeholder="vnp_sandbox_xxxxxxxx">
+        </div>
+        <div class="input-group">
+          <label>Merchant ID</label>
+          <input type="text" id="admMerchantId" placeholder="MCH-xxxx">
+        </div>
+        <div class="input-group">
+          <label>Mode</label>
+          <select id="admMode">
+            <option value="sandbox">Sandbox (Uji Coba)</option>
+            <option value="production">Production (Live)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-actions">
+        <button class="btn btn-green" onclick="simpanSettings()">💾 Simpan Pengaturan</button>
+        <button class="btn btn-blue" onclick="exportSettings()">📤 Export Settings (JSON)</button>
+        <button class="btn btn-grey" onclick="importSettings()">📥 Import Settings</button>
+        <button class="btn btn-red" onclick="konfirmasiReset()">🗑️ Reset Semua Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TRANSAKSI ================= -->
+  <div id="transaksi-page" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="goTo('dashboard-page')">← Kembali</button>
+      <h2>Transaksi</h2>
+    </div>
+    <div class="admin-content">
+      <div class="section-header"><h2 class="section-title">Riwayat Transaksi</h2></div>
+      <div class="list-card">
+        <div class="list-row"><span>TRX-001</span><span class="status-success">✓ Success</span></div>
+        <div class="list-row"><span>Rp 15.000</span><span>Hari ini, 10:30</span></div>
+        <div class="list-row"><span>QRIS</span><span>Budi S.</span></div>
+      </div>
+      <div class="list-card">
+        <div class="list-row"><span>TRX-002</span><span class="status-pending">⏳ Pending</span></div>
+        <div class="list-row"><span>Rp 27.000</span><span>Hari ini, 09:15</span></div>
+        <div class="list-row"><span>QRIS</span><span>Ani W.</span></div>
+      </div>
+      <div class="list-card">
+        <div class="list-row"><span>TRX-003</span><span class="status-failed">✗ Failed</span></div>
+        <div class="list-row"><span>Rp 50.000</span><span>Kemarin, 20:45</span></div>
+        <div class="list-row"><span>QRIS</span><span>Citra D.</span></div>
+      </div>
+      <div class="list-card">
+        <div class="list-row"><span>TRX-004</span><span class="status-success">✓ Success</span></div>
+        <div class="list-row"><span>Rp 100.000</span><span>Kemarin, 15:20</span></div>
+        <div class="list-row"><span>QRIS</span><span>Dodi P.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TARIK ================= -->
+  <div id="tarik-page" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="goTo('dashboard-page')">← Kembali</button>
+      <h2>Tarik Dana</h2>
+    </div>
+    <div class="admin-content">
+      <div class="admin-card" style="background: var(--primary); color:#fff;">
+        <h3 style="border-bottom-color: rgba(255,255,255,.3);">💰 Saldo Tersedia</h3>
+        <div style="font-size:28px; font-weight:800;">Rp 50.500</div>
+        <div style="font-size:12px; opacity:.8; margin-top:4px;">Diperbarui otomatis setiap 5 menit</div>
+      </div>
+      <div class="admin-card">
+        <h3>🏦 Tarik ke Rekening</h3>
+        <div class="input-group" id="grpTarik">
+          <label>Nominal (Rp)</label>
+          <input type="number" id="tarikNominal" placeholder="Minimal 10.000">
+          <div class="err">Minimal tarik Rp 10.000</div>
+        </div>
+        <div class="input-group">
+          <label>Bank Tujuan</label>
+          <select id="tarikBank">
+            <option>BCA</option><option>BRI</option><option>BNI</option>
+            <option>Mandiri</option><option>BSI</option><option>Permata</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Nomor Rekening</label>
+          <input type="text" id="tarikRek" placeholder="1234567890">
+        </div>
+        <button class="btn btn-blue" onclick="prosesTarik()">Tarik Dana</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= DOCS ================= -->
+  <div id="docs-page" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="goTo('dashboard-page')">← Kembali</button>
+      <h2>Dokumentasi API</h2>
+    </div>
+    <div class="admin-content">
+      <div class="admin-card">
+        <h3>📄 Endpoint API (Simulasi)</h3>
+        <div style="background:#1a1a1a; color:#0f0; font-family:monospace; font-size:12px; padding:12px; border-radius:8px; overflow-x:auto; line-height:1.8;">
+          POST /api/v1/charge<br>
+          GET&nbsp; /api/v1/status/:id<br>
+          POST /api/v1/payout<br>
+          GET&nbsp; /api/v1/balance
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3>🔑 Header Wajib</h3>
+        <div style="background:#1a1a1a; color:#0f0; font-family:monospace; font-size:12px; padding:12px; border-radius:8px;">
+          Authorization: Bearer {API_KEY}<br>
+          Content-Type: application/json
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3>📝 Contoh Payload Charge</h3>
+        <div style="background:#1a1a1a; color:#0f0; font-family:monospace; font-size:12px; padding:12px; border-radius:8px; white-space:pre-wrap;">
+{
+  "amount": 15000,
+  "method": "QRIS",
+  "customer": {
+    "name": "Budi",
+    "email": "budi@mail.com"
+  }
+}
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3>📊 Contoh Response</h3>
+        <div style="background:#1a1a1a; color:#0f0; font-family:monospace; font-size:12px; padding:12px; border-radius:8px; white-space:pre-wrap;">
+{
+  "status": "success",
+  "data": {
+    "trx_id": "TRX-001",
+    "qr_string": "...",
+    "expires_at": "2025-01-01T10:00:00Z"
+  }
+}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PROFIL ================= -->
+  <div id="profil-page" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="goTo('dashboard-page')">← Kembali</button>
+      <h2>Profil</h2>
+    </div>
+    <div class="admin-content">
+      <div class="admin-card" style="text-align:center;">
+        <div style="width:80px; height:80px; background: var(--primary); border:2px solid var(--border); border-radius:50%; display:flex; justify-content:center; align-items:center; color:#fff; font-weight:800; font-size:28px; margin:0 auto 15px; box-shadow: var(--shadow-sm);">VP</div>
+        <div style="font-weight:700; font-size:16px;" id="profilMerchant">VinaPay</div>
+        <div style="font-size:13px; color: var(--muted); margin-top:4px;" id="profilEmail">admin@vinapay.id</div>
+        <div style="font-size:12px; margin-top:8px;" id="profilMode">Mode: sandbox</div>
+      </div>
+      <div class="admin-card">
+        <h3>ℹ️ Informasi</h3>
+        <div class="list-row"><span>Merchant ID</span><span id="profilMerchantId">MCH-DEMO-001</span></div>
+        <div class="list-row"><span>API Key</span><span id="profilApiKey" style="font-family:monospace; font-size:11px;">-</span></div>
+        <div class="list-row"><span>Versi</span><span>v2.0.0 (Simulasi)</span></div>
+        <div class="list-row"><span>Terakhir login</span><span id="profilLastLogin">-</span></div>
+      </div>
+      <button class="btn btn-red" onclick="konfirmasiLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- ================= 404 ================= -->
+  <div id="notfound-page" class="page">
+    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; padding:20px; text-align:center;">
+      <div style="font-size:80px; margin-bottom:20px;">🔍</div>
+      <h1 style="font-size:24px; margin-bottom:10px;">Halaman Tidak Ditemukan</h1>
+      <p style="color: var(--muted); font-size:14px; margin-bottom:30px;">Halaman yang kamu cari tidak tersedia.</p>
+      <button class="btn btn-blue" style="max-width:250px;" onclick="goTo('dashboard-page')">Kembali ke Dashboard</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= NAV ================= -->
+<nav class="bottom-nav" id="bottomNav">
+  <a class="nav-item active" data-target="dashboard-page" onclick="navTo('dashboard-page', this)"><span class="nav-icon">🏠</span>Beranda</a>
+  <a class="nav-item" data-target="transaksi-page" onclick="navTo('transaksi-page', this)"><span class="nav-icon">🧾</span>Transaksi</a>
+  <a class="nav-item" data-target="tarik-page" onclick="navTo('tarik-page', this)"><span class="nav-icon">📉</span>Tarik</a>
+  <a class="nav-item" data-target="docs-page" onclick="navTo('docs-page', this)"><span class="nav-icon">📖</span>Docs</a>
+  <a class="nav-item" data-target="profil-page" onclick="navTo('profil-page', this)"><span class="nav-icon">👤</span>Profil</a>
+</nav>
+
+<!-- ================= TOAST ================= -->
+<div class="toast" id="toast">Berhasil!</div>
+
+<!-- ================= MODAL KONFIRMASI ================= -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Konfirmasi</h3>
+    <p id="modalDesc">Apakah kamu yakin?</p>
+    <div class="modal-actions">
+      <button class="btn btn-grey" onclick="closeModal()">Batal</button>
+      <button class="btn btn-red" id="modalConfirmBtn">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1. KONFIGURASI & STORAGE
+========================================================= */
+const STORAGE_KEY = 'vinapay_full_v2';
+const THEME_KEY = 'vinapay_theme';
+const SESSION_KEY = 'vinapay_login';
+const DEFAULTS = {
+  merchantName: 'VinaPay',
+  email: 'admin@vinapay.id',
+  password: 'admin123',
+  apiKey: 'vnp_sandbox_demo_123',
+  merchantId: 'MCH-DEMO-001',
+  mode: 'sandbox',
+  lastLogin: '-'
+};
+
+function getSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
+  } catch(e) { return { ...DEFAULTS }; }
+}
+function saveSettings(s) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch(e) { showToast('Gagal simpan (storage penuh)'); }
+}
+
+/* =========================================================
+   2. UTILITAS
+========================================================= */
+function showToast(msg, dur=2000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function isLoggedIn() { return sessionStorage.getItem(SESSION_KEY) === '1'; }
+
+function setError(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('invalid', show);
+}
+function clearAllErrors() {
+  document.querySelectorAll('.input-group').forEach(g => g.classList.remove('invalid'));
+}
+
+/* =========================================================
+   3. MODAL
+========================================================= */
+let modalCallback = null;
+function openModal(title, desc, cb) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalDesc').textContent = desc;
+  document.getElementById('modalOverlay').classList.add('show');
+  modalCallback = cb;
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  modalCallback = null;
+}
+document.getElementById('modalConfirmBtn').onclick = () => {
+  if (modalCallback) modalCallback();
+  closeModal();
+};
+
+/* =========================================================
+   4. TEMA (DARK MODE)
+========================================================= */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(THEME_KEY, theme);
+  const btn = document.querySelector('.badge.theme');
+  if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const cur = localStorage.getItem(THEME_KEY) || 'light';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+/* =========================================================
+   5. NAVIGASI
+========================================================= */
+const VALID_PAGES = ['login-page','dashboard-page','admin-page','transaksi-page','tarik-page','docs-page','profil-page','notfound-page'];
+
+function goTo(pageId) {
+  if (!VALID_PAGES.includes(pageId)) pageId = 'notfound-page';
+  if (pageId !== 'login-page' && !isLoggedIn()) pageId = 'login-page';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(pageId);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const match = document.querySelector(`.nav-item[data-target="${pageId}"]`);
+  if (match) match.classList.add('active');
+  if (pageId === 'profil-page') refreshProfil();
+  if (pageId === 'admin-page') loadAdminForm();
+  window.scrollTo(0,0);
+}
+
+function navTo(pageId) {
+  if (!isLoggedIn()) { goTo('login-page'); return; }
+  goTo(pageId);
+}
+
+/* =========================================================
+   6. AUTH
+========================================================= */
+function doLogin() {
+  clearAllErrors();
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  const errorMsg = document.getElementById('errorMsg');
+  const s = getSettings();
+
+  let invalid = false;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('grpEmail', true); invalid = true; }
+  if (!password || password.length < 6) { setError('grpPass', true); invalid = true; }
+  if (invalid) { errorMsg.style.display = 'none'; return; }
+
+  const btn = document.getElementById('btnLogin');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Memproses...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    if (email === s.email && password === s.password) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      s.lastLogin = new Date().toLocaleString('id-ID');
+      saveSettings(s);
+      document.getElementById('merchantNameDisplay').textContent = s.merchantName;
+      errorMsg.style.display = 'none';
+      showToast('Login berhasil! Selamat datang di VinaPay 👋');
+      goTo('dashboard-page');
+    } else {
+      errorMsg.style.display = 'block';
+      errorMsg.textContent = 'Email atau Password salah!';
+    }
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }, 600);
+}
+
+function konfirmasiLogout() {
+  openModal('Logout', 'Yakin ingin keluar dari akun VinaPay?', doLogout);
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('emailInput').value = '';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('errorMsg').style.display = 'none';
+  goTo('login-page');
+  updateLoginHint();
+  showToast('Berhasil logout');
+}
+
+function updateLoginHint() {
+  const s = getSettings();
+  document.getElementById('loginHint').innerHTML =
+    `Demo login →<br><b>Email:</b> ${s.email}<br><b>Password:</b> ${s.password}`;
+}
+
+/* =========================================================
+   7. ADMIN SETTINGS
+========================================================= */
+function loadAdminForm() {
+  const s = getSettings();
+  document.getElementById('admMerchant').value = s.merchantName;
+  document.getElementById('admEmail').value = s.email;
+  document.getElementById('admPassword').value = '';
+  document.getElementById('admApiKey').value = s.apiKey;
+  document.getElementById('admMerchantId').value = s.merchantId;
+  document.getElementById('admMode').value = s.mode;
+}
+
+function simpanSettings() {
+  clearAllErrors();
+  const s = getSettings();
+  const merchantName = document.getElementById('admMerchant').value.trim();
+  const email = document.getElementById('admEmail').value.trim();
+  const passwordBaru = document.getElementById('admPassword').value;
+  const apiKey = document.getElementById('admApiKey').value.trim();
+  const merchantId = document.getElementById('admMerchantId').value.trim();
+  const mode = document.getElementById('admMode').value;
+
+  let invalid = false;
+  if (merchantName.length < 3) { setError('grpMerchant', true); invalid = true; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('grpAdmEmail', true); invalid = true; }
+  if (passwordBaru && passwordBaru.length < 6) { setError('grpAdmPass', true); invalid = true; }
+
+  if (invalid) { showToast('Periksa kembali form'); return; }
+
+  const updated = {
+    ...s,
+    merchantName,
+    email,
+    password: passwordBaru ? passwordBaru : s.password,
+    apiKey, merchantId, mode
+  };
+  saveSettings(updated);
+  document.getElementById('merchantNameDisplay').textContent = updated.merchantName;
+  document.getElementById('admPassword').value = '';
+  updateLoginHint();
+  showToast('Pengaturan VinaPay berhasil disimpan ✅');
+}
+
+function exportSettings() {
+  const s = getSettings();
+  const dataStr = JSON.stringify(s, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `vinapay-settings-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Settings diexport 📤');
+}
+
+function importSettings() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data.email || !data.password) throw new Error('Format tidak valid');
+        saveSettings({ ...getSettings(), ...data });
+        loadAdminForm();
+        updateLoginHint();
+        showToast('Settings diimport 📥');
+      } catch(err) {
+        showToast('File tidak valid ❌');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function konfirmasiReset() {
+  openModal('Reset Semua Data', 'Semua pengaturan VinaPay, kredensial, dan sesi akan dihapus dan dikembalikan ke default. Lanjutkan?', () => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(THEME_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    showToast('Data direset ke default 🗑️');
+    updateLoginHint();
+    applyTheme('light');
+    goTo('login-page');
+  });
+}
+
+/* =========================================================
+   8. PROFIL
+========================================================= */
+function refreshProfil() {
+  const s = getSettings();
+  document.getElementById('profilMerchant').textContent = s.merchantName;
+  document.getElementById('profilEmail').textContent = s.email;
+  document.getElementById('profilMode').textContent = 'Mode: ' + s.mode;
+  document.getElementById('profilMerchantId').textContent = s.merchantId;
+  document.getElementById('profilApiKey').textContent = s.apiKey ? s.apiKey.substring(0,12) + '...' : '-';
+  document.getElementById('profilLastLogin').textContent = s.lastLogin || '-';
+}
+
+/* =========================================================
+   9. TARIK DANA
+========================================================= */
+function prosesTarik() {
+  clearAllErrors();
+  const nominal = parseInt(document.getElementById('tarikNominal').value || '0');
+  const bank = document.getElementById('tarikBank').value;
+  const rek = document.getElementById('tarikRek').value.trim();
+
+  if (!nominal || nominal < 10000) { setError('grpTarik', true); showToast('Minimal tarik Rp 10.000'); return; }
+  if (nominal > 50500) { showToast('Saldo tidak cukup! (Saldo: Rp 50.500)'); return; }
+  if (!rek || rek.length < 5) { showToast('Nomor rekening tidak valid'); return; }
+
+  openModal('Konfirmasi Tarik Dana',
+    `Tarik Rp ${nominal.toLocaleString('id-ID')} ke ${bank} (${rek})?`,
+    () => {
+      showToast(`✅ Tarik Rp ${nominal.toLocaleString('id-ID')} ke ${bank} diproses`);
+      document.getElementById('tarikNominal').value = '';
+      document.getElementById('tarikRek').value = '';
+    });
+}
+
+/* =========================================================
+   10. INIT
+========================================================= */
+window.addEventListener('DOMContentLoaded', () => {
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+  updateLoginHint();
+
+  if (isLoggedIn()) {
+    const s = getSettings();
+    document.getElementById('merchantNameDisplay').textContent = s.merchantName;
+    goTo('dashboard-page');
+  } else {
+    goTo('login-page');
+  }
+
+  document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k' && isLoggedIn()) {
+      e.preventDefault();
+      goTo('admin-page');
+    }
+  });
+
+  console.log('%c VinaPay v2.0 ', 'background:#3b72f6; color:#fff; font-size:16px; padding:4px 8px; border-radius:4px;');
+  console.log('Demo login:', getSettings().email, '/', getSettings().password);
+});
+</script>
+</body>
+</html>
